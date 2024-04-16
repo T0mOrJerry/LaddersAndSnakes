@@ -39,10 +39,10 @@ class Menu:
             GuideButton(self.surface, WINDOW_WIDTH / 3.5, WINDOW_HEIGHT / 8, WINDOW_WIDTH / 8 * 5,
                         WINDOW_HEIGHT / 7 * 3.08, (102, 61, 14),
                         (227, 190, 148), 'User Guide'),
-            ExitAppButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 44 * 39,
-                       WINDOW_HEIGHT / 40 * 35,
+            ExitAppButton(self.surface, WINDOW_WIDTH / 6, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 50 - 20,
+                       WINDOW_HEIGHT / 40 * 34 + 2,
                        (102, 17, 17),
-                       (227, 190, 148), 'Exit'),
+                       (227, 190, 148), 'Exit the game'),
         ]
 
     # This function draws everything, which will be on the screen
@@ -74,8 +74,8 @@ class Choice:
                             WINDOW_HEIGHT / 7 * 4 + 20,
                             (102, 61, 14),
                             (227, 190, 148)),
-            ExitButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 22 * 19,
-                       WINDOW_HEIGHT / 20 * 17,
+            ExitButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 44 * 39,
+                       WINDOW_HEIGHT / 40 * 35,
                        (102, 17, 17),
                        (227, 190, 148), 'Exit'),
             GameSubmitButton(self.surface, WINDOW_WIDTH / 14 * 3, WINDOW_HEIGHT / 14 * 2, WINDOW_WIDTH / 28 * 17,
