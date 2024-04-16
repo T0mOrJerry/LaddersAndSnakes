@@ -1,10 +1,10 @@
 # Preparing PyGame module to run the application
 import pygame
+
 pygame.init()
 running = True
 clock = pygame.time.Clock()
 FPS = 60
-
 
 # Initializing constants
 WINDOW_WIDTH = 1280
@@ -12,7 +12,6 @@ WINDOW_HEIGHT = 720
 BigFont = pygame.font.SysFont("Arial", 60)
 NormalFont = pygame.font.SysFont("Arial", 32)
 TitleFont = pygame.font.SysFont("Arial", 100)
-
 
 # Creating different surfaces for different purpose
 # One general and one for each window
@@ -40,10 +39,15 @@ class Menu:
             GuideButton(self.surface, WINDOW_WIDTH / 3.5, WINDOW_HEIGHT / 8, WINDOW_WIDTH / 8 * 5,
                         WINDOW_HEIGHT / 7 * 3.08, (102, 61, 14),
                         (227, 190, 148), 'User Guide'),
+            ExitAppButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 44 * 39,
+                       WINDOW_HEIGHT / 40 * 35,
+                       (102, 17, 17),
+                       (227, 190, 148), 'Exit'),
         ]
 
     # This function draws everything, which will be on the screen
     def draw(self):
+        self.surface.fill('white')
         btn_txt = TitleFont.render("Snakes & Ladders", True, "Black", None)
         r = btn_txt.get_rect()
         self.surface.blit(btn_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 15))
@@ -62,30 +66,40 @@ class Choice:
         # Each button initialized with its characteristics
         self.player_number = 1
         self.buttons = [
-            ArrowUpButton(self.surface, WINDOW_WIDTH / 7, WINDOW_HEIGHT / 7, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 7 * 4 - 20,
-                        (200, 61, 14),
-                        (227, 190, 148)),
-            ArrowDownButton(self.surface, WINDOW_WIDTH / 7, WINDOW_HEIGHT / 7, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 7 * 4 + 20,
-                          (200, 61, 14),
+            ArrowUpButton(self.surface, WINDOW_WIDTH / 7, WINDOW_HEIGHT / 7, WINDOW_WIDTH / 4,
+                          WINDOW_HEIGHT / 7 * 4 - 20,
+                          (102, 61, 14),
                           (227, 190, 148)),
-            ExitButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 11 * 9,
-                          WINDOW_HEIGHT / 10 * 8,
-                          (255, 0, 0),
-                          (227, 190, 148), 'Exit'),
+            ArrowDownButton(self.surface, WINDOW_WIDTH / 7, WINDOW_HEIGHT / 7, WINDOW_WIDTH / 4,
+                            WINDOW_HEIGHT / 7 * 4 + 20,
+                            (102, 61, 14),
+                            (227, 190, 148)),
+            ExitButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 22 * 19,
+                       WINDOW_HEIGHT / 20 * 17,
+                       (102, 17, 17),
+                       (227, 190, 148), 'Exit'),
+            GameSubmitButton(self.surface, WINDOW_WIDTH / 14 * 3, WINDOW_HEIGHT / 14 * 2, WINDOW_WIDTH / 28 * 17,
+                             WINDOW_HEIGHT / 14 * 7,
+                             (26, 107, 39),
+                             (227, 190, 148), 'Submit'),
         ]
 
     # This function draws everything, which will be on the screen
     def draw(self):
+        self.surface.fill('white')
         page_txt = TitleFont.render("Snakes & Ladders", True, "Black", None)
         r = page_txt.get_rect()
         self.surface.blit(page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 15))
         small_page_txt = BigFont.render("Chose amount of players", True, "Black", None)
         r = small_page_txt.get_rect()
         self.surface.blit(small_page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 4))
-        pygame.draw.rect(self.surface, (0, 0, 0), (WINDOW_WIDTH / 7 * 3, WINDOW_HEIGHT / 7 * 3, WINDOW_WIDTH / 7, WINDOW_HEIGHT / 7 * 2), width=5)
+        pygame.draw.rect(self.surface, (0, 0, 0),
+                         (WINDOW_WIDTH / 7 * 3, WINDOW_HEIGHT / 7 * 3, WINDOW_WIDTH / 7, WINDOW_HEIGHT / 7 * 2),
+                         width=5)
         counter_txt = TitleFont.render(f"{self.player_number}", True, "Black", None)
         r = counter_txt.get_rect()
-        self.surface.blit(counter_txt, (WINDOW_WIDTH / 7 * 3 + (WINDOW_WIDTH / 7 - r.width) / 2, WINDOW_HEIGHT / 7 * 3 + (WINDOW_HEIGHT / 7 * 2 - r.height) / 2))
+        self.surface.blit(counter_txt, (WINDOW_WIDTH / 7 * 3 + (WINDOW_WIDTH / 7 - r.width) / 2,
+                                        WINDOW_HEIGHT / 7 * 3 + (WINDOW_HEIGHT / 7 * 2 - r.height) / 2))
         for button in self.buttons:  # This draws each button on the screen
             button.draw()
 
@@ -105,12 +119,42 @@ class Guide:
                         (227, 190, 148), 'Start'),
             ExitButton(self.surface, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 4, WINDOW_WIDTH / 2,
                        WINDOW_HEIGHT / 7 * 5,
-                       (255, 0, 0),
+                       (102, 17, 17),
                        (227, 190, 148), 'Exit'),
         ]
 
     # This function draws everything, which will be on the screen
     def draw(self):
+        self.surface.fill('white')
+        btn_txt = TitleFont.render("Guide", True, "Black", None)
+        r = btn_txt.get_rect()
+        self.surface.blit(btn_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 15))
+        for button in self.buttons:  # This draws each button on the screen
+            button.draw()
+
+    def check(self, user_event):  # Execute every user request
+        for button in self.buttons:
+            button.check(user_event)
+
+
+class Game:
+    def __init__(self):
+        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
+        # List of all buttons which will be in the menu
+        # Each button initialized with its characteristics
+        self.buttons = [
+            StartButton(self.surface, 0, WINDOW_HEIGHT / 7, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 7 * 4,
+                        (0, 61, 14),
+                        (227, 190, 148), 'Start'),
+            ExitButton(self.surface, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 4, WINDOW_WIDTH / 2,
+                       WINDOW_HEIGHT / 7 * 5,
+                       (102, 17, 17),
+                       (227, 190, 148), 'Exit'),
+        ]
+
+    # This function draws everything, which will be on the screen
+    def draw(self):
+        self.surface.fill('white')
         btn_txt = TitleFont.render("Guide", True, "Black", None)
         r = btn_txt.get_rect()
         self.surface.blit(btn_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 15))
@@ -207,8 +251,8 @@ class StartButton(Button):  # Class for the button, which starts the game
                            radius=2)
 
     def do(self):  # This button opens number of players choice window
-        print("Let's play!")
         global current_screen
+        choice.player_number = 1
         current_screen = choice
 
 
@@ -228,9 +272,9 @@ class ArrowUpButton(Button):
     def draw(self):
         if not self.pressed:
             pygame.draw.polygon(self.surface, 'black', [(self.pos_x + 4, self.pos_y + 4),
-                                                               (self.pos_x + self.width + 4, self.pos_y + 4),
-                                                               (self.pos_x + self.width / 2 + 4,
-                                                                self.pos_y - self.height + 4)])
+                                                        (self.pos_x + self.width + 4, self.pos_y + 4),
+                                                        (self.pos_x + self.width / 2 + 4,
+                                                         self.pos_y - self.height + 4)])
         pygame.draw.polygon(self.surface, self.btn_color, [(self.pos_x, self.pos_y),
                                                            (self.pos_x + self.width, self.pos_y),
                                                            (self.pos_x + self.width / 2, self.pos_y - self.height)])
@@ -260,9 +304,9 @@ class ArrowDownButton(Button):
     def draw(self):
         if not self.pressed:
             pygame.draw.polygon(self.surface, 'black', [(self.pos_x + 4, self.pos_y + 4),
-                                                               (self.pos_x + self.width + 4, self.pos_y + 4),
-                                                               (self.pos_x + self.width / 2 + 4,
-                                                                self.pos_y + self.height + 4)])
+                                                        (self.pos_x + self.width + 4, self.pos_y + 4),
+                                                        (self.pos_x + self.width / 2 + 4,
+                                                         self.pos_y + self.height + 4)])
         pygame.draw.polygon(self.surface, self.btn_color, [(self.pos_x, self.pos_y),
                                                            (self.pos_x + self.width, self.pos_y),
                                                            (self.pos_x + self.width / 2, self.pos_y + self.height)])
@@ -296,18 +340,28 @@ class ExitButton(Button):  # Class for the button which return the user to the m
         current_screen = menu
 
 
+class ExitAppButton(Button):  # Class for the button which stops the app
+    def do(self):
+        global running
+        running = False
+
+
+class GameSubmitButton(Button):
+    def do(self):
+        global current_screen
+        current_screen = game
+
+
 # "Switch screen" function which triggers at the end of each pygame loop and displays current surface
 def switch_screen(screen):
-    sc = screen.surface
-    sc.fill('white')
     screen.draw()
-    main_screen.blit(sc, (0, 0))
-    pygame.display.flip()
+    main_screen.blit(screen.surface, (0, 0))
 
 
 menu = Menu()
 guide = Guide()
 choice = Choice()
+game = Game()
 current_screen = menu
 while running:  # Window cycle
     for event in pygame.event.get():  # Event check
@@ -316,5 +370,6 @@ while running:  # Window cycle
         if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEBUTTONUP:
             current_screen.check(event)
     switch_screen(current_screen)
+    pygame.display.flip()
     clock.tick(FPS)  # Setting the amount of frames per seconds (limits of updates per second)
 pygame.quit()
