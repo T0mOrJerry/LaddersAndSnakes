@@ -12,7 +12,18 @@ WINDOW_HEIGHT = 720
 BigFont = pygame.font.SysFont("Arial", 60)
 NormalFont = pygame.font.SysFont("Arial", 32)
 TitleFont = pygame.font.SysFont("Arial", 100)
+body_font = pygame.font.SysFont("Arial", 25)
 
+# Omar
+# Storing player data
+players = {
+    "Omar": [52, 820],
+    "Alex": [63, 760],
+    "Wilson": [54, 700]
+}
+plylist = list(players.keys())
+
+# Alex
 # Creating different surfaces for different purpose
 # One general and one for each window
 main_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
@@ -40,9 +51,9 @@ class Menu:
                         WINDOW_HEIGHT / 7 * 3.08, (102, 61, 14),
                         (227, 190, 148), 'User Guide'),
             ExitAppButton(self.surface, WINDOW_WIDTH / 6, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 50 - 20,
-                       WINDOW_HEIGHT / 40 * 34 + 2,
-                       (102, 17, 17),
-                       (227, 190, 148), 'Exit the game'),
+                          WINDOW_HEIGHT / 40 * 34 + 2,
+                          (102, 17, 17),
+                          (227, 190, 148), 'Exit the game'),
         ]
 
     # This function draws everything, which will be on the screen
@@ -137,6 +148,58 @@ class Guide:
             button.check(user_event)
 
 
+# Omar
+class Leaderboard:
+    def __init__(self):
+        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
+        # List of all buttons which will be in the menu
+        # Each button initialized with its characteristics
+        self.buttons = [
+            ExitButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 44 * 39,
+                       WINDOW_HEIGHT / 40 * 35,
+                       (102, 17, 17),
+                       (227, 190, 148), 'Exit'),
+        ]
+        self.bodyheight = body_font.size("Body")[1]
+
+    def add_text(self, txt, wid, hig, color=(227, 190, 148)):
+        body_surface = body_font.render(str(txt), True, color)
+        self.surface.blit(body_surface, (wid, hig))
+
+    def result(self, li, di, i, y):  # maximum 7 players at one time
+        pygame.draw.line(self.surface, (102, 61, 14), (0, y), (WINDOW_WIDTH, y), 50)
+        self.add_text(str(i + 1), 0, y + self.bodyheight / 2 - 25)
+        self.add_text(str(li[i]), WINDOW_WIDTH / 4 - 100, y + self.bodyheight // 2 - 25)
+        self.add_text(str(di[li[i]][0]), WINDOW_WIDTH / 2 - 100, y + self.bodyheight / 2 - 25)
+        self.add_text(str(di[li[i]][1]), WINDOW_WIDTH - 100, y + self.bodyheight / 2 - 25)
+
+    def draw(self):
+        self.surface.fill('white')
+        # Omar, Create a surface that hold the title
+        title_surface = TitleFont.render('Leaderboard', True, (0, 0, 0))
+        # Blit the title surface onto the screen
+        self.surface.blit(title_surface, (WINDOW_WIDTH / 2 - TitleFont.size("Leaderboard")[0] / 2, WINDOW_HEIGHT / 50 - 20))
+        # variable x equal to 0
+        x = 200
+        # adding subtitles
+        self.add_text("Rank", 0, 125, (0, 0, 0))
+        self.add_text("Name", WINDOW_WIDTH // 4 - 100, 125, (0, 0, 0))
+        self.add_text("Number of Turns", WINDOW_WIDTH / 2 - 100 - body_font.size("Number of Turns")[0] / 2, 125,
+                 (0, 0, 0))
+        self.add_text("Score", WINDOW_WIDTH - 100 - body_font.size("S")[0], 125, (0, 0, 0))
+        for i in range(len(plylist)):  # for loop to print the result for each player
+
+            self.result(plylist, players, i, x)
+            x += 75  # the difference between each result and result is 75
+        for button in self.buttons:  # This draws each button on the screen
+            button.draw()
+
+    def check(self, user_event):  # Execute every user request
+        for button in self.buttons:
+            button.check(user_event)
+
+
+# Alex
 class Game:
     def __init__(self):
         self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
@@ -258,7 +321,8 @@ class StartButton(Button):  # Class for the button, which starts the game
 
 class BoardButton(Button):  # Class for the button which opens window of leaderboard
     def do(self):
-        print("Let's see our leaders")
+        global current_screen
+        current_screen = board
 
 
 class GuideButton(Button):  # Class for the button which opens window with player guide
@@ -360,6 +424,7 @@ def switch_screen(screen):
 
 menu = Menu()
 guide = Guide()
+board = Leaderboard()
 choice = Choice()
 game = Game()
 current_screen = menu
