@@ -179,7 +179,7 @@ class Leaderboard:
         title_surface = TitleFont.render('Leaderboard', True, (0, 0, 0))
         # Blit the title surface onto the screen
         self.surface.blit(title_surface, (WINDOW_WIDTH / 2 - TitleFont.size("Leaderboard")[0] / 2, WINDOW_HEIGHT / 50 - 20))
-        # variable x equal to 0
+        # variable x equal to 200
         x = 200
         # adding subtitles
         self.add_text("Rank", 0, 125, (0, 0, 0))
