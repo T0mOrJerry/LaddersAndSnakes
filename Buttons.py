@@ -9,6 +9,9 @@ FPS = 60
 # Initializing constants
 WINDOW_WIDTH = 1280
 WINDOW_HEIGHT = 720
+keys_codes = {97: 'a', 98: 'b', 99: 'c', 100: 'd', 101: 'e', 102: 'f', 103: 'g', 104: 'h', 105: 'i', 106: 'j', 107: 'k',
+              108: 'l', 109: 'm', 110: 'n', 111: 'o', 112: 'p', 113: 'q', 114: 'r', 115: 's', 116: 't', 117: 'u',
+              118: 'v', 119: 'w', 120: 'x', 121: 'y', 122: 'z'}
 BigFont = pygame.font.SysFont("Arial", 60)
 NormalFont = pygame.font.SysFont("Arial", 32)
 TitleFont = pygame.font.SysFont("Arial", 100)
@@ -89,10 +92,10 @@ class Choice:
                        WINDOW_HEIGHT / 40 * 35,
                        (102, 17, 17),
                        (227, 190, 148), 'Exit'),
-            GameSubmitButton(self.surface, WINDOW_WIDTH / 14 * 3, WINDOW_HEIGHT / 14 * 2, WINDOW_WIDTH / 28 * 17,
-                             WINDOW_HEIGHT / 14 * 7,
-                             (26, 107, 39),
-                             (227, 190, 148), 'Submit'),
+            ChoiceSubmitButton(self.surface, WINDOW_WIDTH / 14 * 3, WINDOW_HEIGHT / 14 * 2, WINDOW_WIDTH / 28 * 17,
+                               WINDOW_HEIGHT / 14 * 7,
+                               (26, 107, 39),
+                               (227, 190, 148), 'Submit'),
         ]
 
     # This function draws everything, which will be on the screen
@@ -117,6 +120,51 @@ class Choice:
     def check(self, user_event):  # Execute every user request
         for button in self.buttons:
             button.check(user_event)
+
+
+class Names:
+    def __init__(self):
+        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
+        # List of all buttons which will be in the menu
+        # Each button initialized with its characteristics
+        self.buttons = [
+            ExitButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 44 * 39,
+                       WINDOW_HEIGHT / 40 * 35,
+                       (102, 17, 17),
+                       (227, 190, 148), 'Exit'),
+            NamesSubmitButton(self.surface, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 9, WINDOW_WIDTH / 4,
+                       WINDOW_HEIGHT / 5 * 2 + WINDOW_HEIGHT / 9 * 4,
+                             (26, 107, 39),
+                             (227, 190, 148), 'Submit'),
+        ]
+        self.fields = []
+        for i in range(choice.player_number):
+            self.fields.append(EnterField(self.surface, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 4,
+                       WINDOW_HEIGHT / 5 * 2 + WINDOW_HEIGHT / 9 * i))
+
+    # This function draws everything, which will be on the screen
+    def draw(self):
+        self.surface.fill('white')
+        page_txt = TitleFont.render("Snakes & Ladders", True, "Black", None)
+        r = page_txt.get_rect()
+        self.surface.blit(page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 15))
+        small_page_txt = BigFont.render("Enter name(s) of player(s)", True, "Black", None)
+        r = small_page_txt.get_rect()
+        self.surface.blit(small_page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 4))
+        for button in self.buttons:  # This draws each button on the screen
+            button.draw()
+        for field in self.fields:
+            field.draw()
+
+    def check(self, user_event):  # Execute every user request
+        for button in self.buttons:
+            button.check(user_event)
+        for field in self.fields:
+            field.check(user_event)
+
+    def inp(self, user_event):  # Execute every user request
+        for field in self.fields:
+            field.inp(user_event)
 
 
 class Guide:
@@ -178,14 +226,15 @@ class Leaderboard:
         # Omar, Create a surface that hold the title
         title_surface = TitleFont.render('Leaderboard', True, (0, 0, 0))
         # Blit the title surface onto the screen
-        self.surface.blit(title_surface, (WINDOW_WIDTH / 2 - TitleFont.size("Leaderboard")[0] / 2, WINDOW_HEIGHT / 50 - 20))
+        self.surface.blit(title_surface,
+                          (WINDOW_WIDTH / 2 - TitleFont.size("Leaderboard")[0] / 2, WINDOW_HEIGHT / 50 - 20))
         # variable x equal to 0
         x = 200
         # adding subtitles
         self.add_text("Rank", 0, 125, (0, 0, 0))
         self.add_text("Name", WINDOW_WIDTH // 4 - 100, 125, (0, 0, 0))
         self.add_text("Number of Turns", WINDOW_WIDTH / 2 - 100 - body_font.size("Number of Turns")[0] / 2, 125,
-                 (0, 0, 0))
+                      (0, 0, 0))
         self.add_text("Score", WINDOW_WIDTH - 100 - body_font.size("S")[0], 125, (0, 0, 0))
         for i in range(len(plylist)):  # for loop to print the result for each player
 
@@ -227,6 +276,54 @@ class Game:
     def check(self, user_event):  # Execute every user request
         for button in self.buttons:
             button.check(user_event)
+
+
+class EnterField:
+    def __init__(self, surf, width: float, height: float, pos_x: float, pos_y: float, text=''):
+        self.surface = surf
+        self.width = width
+        self.height = height
+        self.pos_x = pos_x
+        self.pos_y = pos_y
+        self.text = text
+        self.activated = False
+
+    # This function draw the button with the stated position
+    def draw(self):
+        if not self.activated:  # Drawing the button's shadow if the button isn't pressed
+            pygame.draw.rect(self.surface, "gray", (self.pos_x, self.pos_y, self.width, self.height))
+        else:
+            pygame.draw.rect(self.surface, "white", (self.pos_x, self.pos_y, self.width, self.height))
+        pygame.draw.rect(self.surface, "black", (self.pos_x, self.pos_y, self.width, self.height), width=2)
+        btn_txt = NormalFont.render(self.text, True, 'black', None)
+        r = btn_txt.get_rect()
+        self.surface.blit(btn_txt, (self.pos_x + 5, self.pos_y + (self.height - r.height) / 2))
+
+    # The function activates, when user click the mouse and check weather mouse was in the button at that moment
+    def check(self, *args):
+        p = args[0].pos
+        if (self.pos_x <= p[0] <= self.pos_x + self.width) and (self.pos_y <= p[1] <= self.pos_y + self.height):
+            # The function distinguish when user press the button and when they release the button
+            # The function creates the animation (changes the position) of the button
+            if args[0].type == 1025:
+                self.activated = not self.activated
+        elif self.activated and args[0].type == 1025:
+            self.activated = not self.activated
+
+    def inp(self, *args):
+        if self.activated:
+            if 97 <= args[0].key <= 122:
+                if not self.text:
+                    self.text += keys_codes[args[0].key].upper()
+                elif len(self.text) <= 27:
+                    self.text += keys_codes[args[0].key]
+            elif args[0].key == 8:
+                self.text = self.text[:-1]
+
+    # This function is empty for the template
+    # It is personalized for different buttons and reliable for button's jobd
+    def do(self):
+        pass
 
 
 # Parental class for all buttons
@@ -410,10 +507,17 @@ class ExitAppButton(Button):  # Class for the button which stops the app
         running = False
 
 
-class GameSubmitButton(Button):
+class ChoiceSubmitButton(Button):
+    def do(self):
+        global current_screen, names
+        names = Names()
+        current_screen = names
+
+
+class NamesSubmitButton(Button):
     def do(self):
         global current_screen
-        current_screen = game
+        current_screen = names
 
 
 # "Switch screen" function which triggers at the end of each pygame loop and displays current surface
@@ -426,6 +530,7 @@ menu = Menu()
 guide = Guide()
 board = Leaderboard()
 choice = Choice()
+names = Names()
 game = Game()
 current_screen = menu
 while running:  # Window cycle
@@ -434,6 +539,8 @@ while running:  # Window cycle
             running = False
         if event.type == pygame.MOUSEBUTTONDOWN or event.type == pygame.MOUSEBUTTONUP:
             current_screen.check(event)
+        if event.type == pygame.KEYDOWN and current_screen == names:
+            current_screen.inp(event)
     switch_screen(current_screen)
     pygame.display.flip()
     clock.tick(FPS)  # Setting the amount of frames per seconds (limits of updates per second)
