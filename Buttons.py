@@ -315,7 +315,7 @@ class Game:
                            (227, 190, 148), 'Exit'),
             DiceButton(self.surface, WINDOW_WIDTH / 5, WINDOW_HEIGHT / 13, WINDOW_WIDTH / 5 * 4,
                        WINDOW_HEIGHT / 3 * 2 + 3,
-                       "green",
+                       (26, 107, 39),
                        (227, 190, 148), 'Roll the dice'),
         ]
         self.player_number = None
