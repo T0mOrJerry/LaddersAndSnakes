@@ -1,0 +1,79 @@
+import pygame
+import random
+#Omar , class cell
+class Cell:
+    def __init__(self, row, col, val, index):
+        self.row = row
+        self.col = col
+        self.val = val
+        self.index = index
+        self.connections = []
+# function to add a neighbor inside the connection list
+    def add_connection(self, neighbor):
+        self.connections.append(neighbor)
+
+class Board:
+    #function to create a board object with a cells and a random value between -50,49 inside each cell
+    def __init__(self, rows, cols):
+        self.rows = rows
+        self.cols = cols
+        self.cells = [[] for row in range(rows)]
+        for row in range(rows):
+            for col in range(cols):
+                if row % 2 == 0:
+                    val = (rows - row) * cols - cols + 1 + col
+                else:
+                    val = (rows - row) * cols - col
+                self.cells[row].append(Cell(row, col, int(-50 + 100 * random.random()), val))
+#it will connect two cells by a gold line as a shortcut
+    def draw_gold_ledders(self, window):
+        A_row = random.randint(0, self.rows - 1)
+        A_col = random.randint(0, self.cols - 1)
+        B_row = random.randint(0, self.rows - 1)
+        B_col = random.randint(0, self.cols - 1)
+        if A_row != B_row and self.cells[A_row][A_col].connections==None and self.cells[B_row][B_col].connections==None:  #so there is no ledders in the same row
+            self.cells[A_row][A_col].add_connection(self.cells[B_row][B_col])
+            x1, y1 = self.cells[A_row][A_col].col * 100 + 50, self.cells[A_row][A_col].row * 100 + 50
+            x2, y2 = self.cells[B_row][B_col].col * 100 + 50, self.cells[B_row][B_col].row * 100 + 50
+            pygame.draw.line(window, (207, 181, 59), (x1, y1), (x2, y2), 20)
+
+    def draw_silver_snakes(self, window):
+        pass
+#function to draw the board with a size 100 for each cell and the order of cells on the board
+    def draw_board(self, window):
+        Cell_Size = 100
+        window.fill((200, 200, 200))
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if (row + col) % 2 == 0:
+                    color = (139, 189, 120)
+                else:
+                    color = (200, 200, 200)
+                rect = pygame.Rect(col * Cell_Size, row * Cell_Size, Cell_Size, Cell_Size)
+                pygame.draw.rect(window, color, rect)
+                x_font = pygame.font.SysFont("Arial", 25)
+                y_font = pygame.font.SysFont("Comic Sans MS", 20)
+                text_index = y_font.render(str(self.cells[row][col].index), True, (0, 0, 0))
+                text_surface = x_font.render(str(self.cells[row][col].val), True, (255, 255, 255))
+                text_rect = text_surface.get_rect(center=rect.center)
+                index_rect = list(text_index.get_rect(bottomright=(rect.bottomright)))
+                window.blit(text_surface, text_rect)
+                window.blit(text_index, (index_rect[0], index_rect[1]))
+
+        pygame.display.flip()
+
+#e.g
+rows = 7
+cols = 6
+pygame.init()
+board = Board(rows, cols)
+screen = pygame.display.set_mode((cols * 100, rows * 100))
+running = True
+
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    board.draw_board(screen)
+pygame.quit()
