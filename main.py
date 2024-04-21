@@ -19,10 +19,13 @@ colors = [[(237, 152, 152), (222, 35, 35)], [(189, 152, 237), (116, 35, 222)], [
           [(169, 237, 152), (73, 222, 35)], [(220, 237, 152), (185, 222, 35)],
           [(237, 229, 152), (222, 203, 35)], [(237, 203, 152), (222, 147, 35)],
           [(237, 187, 152), (222, 113, 35)], [(237, 162, 152), (222, 57, 35)]]
+CELL_SIZE = 120
+ROWS = 5
+COLS = 8
 BigFont = pygame.font.SysFont("Arial", 60)
 NormalFont = pygame.font.SysFont("Arial", 32)
 TitleFont = pygame.font.SysFont("Arial", 100)
-body_font = pygame.font.SysFont("Arial", 25)
+BodyFont = pygame.font.SysFont("Arial", 25)
 
 # Omar
 # Storing player data
@@ -30,8 +33,8 @@ players = {
     "Omar": [52, 820],
     "Alex": [63, 760],
     "Wilson": [54, 700]
-}
-plylist = list(players.keys())
+}  ############################################################# Sorting algorithm for players' score
+
 
 # Alex
 # Creating different surfaces for different purpose
@@ -81,6 +84,23 @@ class Queue:
             raise StopIteration
         self.ln -= 1
         return self.items[self.ln]
+
+
+# Omar , class cell
+class Cell:
+    def __init__(self, row, col, val, index):
+        self.row = row
+        self.col = col
+        self.val = val
+        self.index = index
+        self.connections = []
+
+    # function to add a neighbor inside the connection list
+    def add_connection(self, neighbor):
+        self.connections.append(neighbor)
+
+    def __str__(self):
+        return f"{self.row}, {self.col}, {self.index}, {self.val}"
 
 
 # Each window is described as a class, which draws everything, that must be drawn
@@ -262,10 +282,10 @@ class Leaderboard:
                        (102, 17, 17),
                        (227, 190, 148), 'Exit'),
         ]
-        self.bodyheight = body_font.size("Body")[1]
+        self.bodyheight = BodyFont.size("Body")[1]
 
     def add_text(self, txt, wid, hig, color=(227, 190, 148)):
-        body_surface = body_font.render(str(txt), True, color)
+        body_surface = BodyFont.render(str(txt), True, color)
         self.surface.blit(body_surface, (wid, hig))
 
     def result(self, li, di, i, y):  # maximum 7 players at one time
@@ -287,11 +307,13 @@ class Leaderboard:
         # adding subtitles
         self.add_text("Rank", 0, 125, (0, 0, 0))
         self.add_text("Name", WINDOW_WIDTH // 4 - 100, 125, (0, 0, 0))
-        self.add_text("Number of Turns", WINDOW_WIDTH / 2 - 100 - body_font.size("Number of Turns")[0] / 2, 125,
+        self.add_text("Number of Turns", WINDOW_WIDTH / 2 - 100 - BodyFont.size("Number of Turns")[0] / 2, 125,
                       (0, 0, 0))
-        self.add_text("Score", WINDOW_WIDTH - 100 - body_font.size("S")[0], 125, (0, 0, 0))
+        self.add_text("Score", WINDOW_WIDTH - 100 - BodyFont.size("S")[0], 125, (0, 0, 0))
+        plylist = list(players.keys())
         for i in range(len(plylist)):  # for loop to print the result for each player
-
+            if i > 5:
+                break
             self.result(plylist, players, i, x)
             x += 75  # the difference between each result and result is 75
         for button in self.buttons:  # This draws each button on the screen
@@ -328,16 +350,30 @@ class Game:
         self.dice_surface = None
         self.dice_pos_x = None
         self.dice_pos_y = None
+        self.turns = 0
+        self.game_board = Board()
+        self.game_board.cells[4][0].val = 0
+        self.players_positions = {}
+
+    def end_game(self):
+        global current_screen
+        for name in self.player_score:
+            if name not in players:
+                players[name] = [self.turns // len(self.players_names) + 1, self.player_score[name]]
+            else:
+                players[name][0] += self.turns // len(self.players_names) + 1
+                players[name][1] += self.player_score[name]
+        print(players)
+        current_screen = endgame
 
     def draw_score(self):
-        for name in self.players_names:
-            score = self.player_score[name]
             start_position = (WINDOW_WIDTH / 5 * 4, 0)
             k = 0
             for player in self.players_order:
+                score = self.player_score[player]
                 pygame.draw.rect(self.surface, self.players_colors[player][0],
                                  (start_position[0], start_position[1] + k, WINDOW_WIDTH / 5, WINDOW_HEIGHT / 17))
-                btn_txt = body_font.render(f'{player}:      {score}', True, "Black", None)
+                btn_txt = BodyFont.render(f'{player}:      {score}', True, "Black", None)
                 r = btn_txt.get_rect()
                 self.surface.blit(btn_txt,
                                   (start_position[0] + 10, start_position[1] + k + (WINDOW_HEIGHT / 17 - r.height) / 2))
@@ -353,12 +389,6 @@ class Game:
                          (WINDOW_WIDTH / 5 * 4, WINDOW_HEIGHT / 17 * 5, WINDOW_WIDTH / 5,
                           WINDOW_HEIGHT / 3 * 2 - WINDOW_HEIGHT / 7 * 2),
                          width=5)
-        # if self.dice_value is not None:
-        #     counter_txt = TitleFont.render(f"{self.dice_value}", True, "Black", None)
-        #     r = counter_txt.get_rect()
-        #     self.surface.blit(counter_txt, (WINDOW_WIDTH / 5 * 4 + (WINDOW_WIDTH / 5 - r.width) / 2,
-        #                                     WINDOW_HEIGHT / 17 * 5 + (
-        #                                                 WINDOW_HEIGHT / 3 * 2 - WINDOW_HEIGHT / 7 * 2 - r.height) / 2))
         if self.dice_surface is not None:
             self.surface.blit(self.dice_surface, (self.dice_pos_x, self.dice_pos_y))
 
@@ -393,7 +423,7 @@ class Game:
             pygame.draw.circle(self.dice_surface, (0, 0, 0),
                                (self.dice_size / 15 * 11,
                                 self.dice_size / 2), 6)
-        self.surface.blit(self.dice_surface, (self.dice_pos_x, self.dice_pos_y))
+        # self.surface.blit(self.dice_surface, (self.dice_pos_x, self.dice_pos_y))
         switch_screen(current_screen)
         pygame.display.flip()
 
@@ -405,17 +435,63 @@ class Game:
             pygame.time.wait(150)
         self.draw_dice(self.dice_value)
 
+    def draw_players(self):
+        k_x = CELL_SIZE / 4
+        k_y = CELL_SIZE / 4
+        c = 0
+        for player in self.players_names:
+            h_x = 20 + self.players_positions[player][1] * CELL_SIZE + k_x
+            h_y = 40 + self.players_positions[player][0] * CELL_SIZE + k_y
+            pygame.draw.circle(self.surface, self.players_colors[player][1], (h_x, h_y), CELL_SIZE / 8)
+            if c % 2 == 0:
+                k_x += CELL_SIZE / 2
+                k_x %= CELL_SIZE
+            else:
+                k_y += CELL_SIZE / 2
+                k_x %= CELL_SIZE
+            c += 1
+
+    def move(self):
+        player = self.players_order.peek()
+        h_x = self.players_positions[player][1]
+        h_y = self.players_positions[player][0]
+        if h_y == 0 and h_x + self.dice_value >= COLS:
+            self.end_game()
+        else:
+            if h_x + self.dice_value < COLS and h_y % 2 == 0:
+                self.players_positions[player][1] += self.dice_value
+            elif h_x - self.dice_value >= 0 and h_y % 2 == 1:
+                self.players_positions[player][1] -= self.dice_value
+            elif h_y % 2 == 0:
+                self.players_positions[player][0] -= 1
+                self.players_positions[player][1] = COLS - (self.dice_value - (COLS - h_x)) - 1
+            elif h_y % 2 == 1:
+                self.players_positions[player][0] -= 1
+                self.players_positions[player][1] = self.dice_value - h_x - 1
+            con = self.game_board.cells[self.players_positions[player][0]][self.players_positions[player][1]].connections
+            if con:
+                if con[0] is not None:
+                    self.players_positions[player][0] = con[0].row
+                    self.players_positions[player][1] = con[0].col
+            self.player_score[player] += self.game_board.cells[self.players_positions[player][0]][self.players_positions[player][1]].val
+
     # This function draws everything, which will be on the screen
     def draw(self):
         self.surface.fill('white')
+        self.game_board.draw_board()
         for button in self.buttons:  # This draws each button on the screen
             button.draw()
         self.draw_score()
         self.draw_dice_screen()
+        self.surface.blit(self.game_board.surface, (20, 40))
+        self.draw_players()
 
     def roll_dice(self):
+        # self.dice_value = random.choice([1])
         self.dice_value = random.choice([1, 2, 3, 4, 5, 6])
         self.dice_animation()
+        self.turns += 1  ############ INCORRECT!!!!
+        self.move()
         self.players_order.enqueue(self.players_order.dequeue())
 
     def check(self, user_event):  # Execute every user request
@@ -429,6 +505,97 @@ class Game:
             self.players_order.enqueue(name)
         for color, player in zip(random.sample(colors, self.player_number), self.players_names):
             self.players_colors[player] = color
+        for player in self.players_names:
+            self.players_positions[player] = [4, 0]
+
+
+class Board:
+    # function to create a board object with a cells and a random value between -50,49 inside each cell
+    def __init__(self):
+        self.rows = ROWS
+        self.cols = COLS
+        self.surface = pygame.Surface((self.cols * CELL_SIZE, self.rows * CELL_SIZE))
+        self.cells = [[] for row in range(self.rows)]
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if row % 2 == 0:
+                    index = (self.rows - row) * self.cols - self.cols + 1 + col
+                else:
+                    index = (self.rows - row) * self.cols - col
+                # print(row, col, val)
+                self.cells[row].append(Cell(row, col, random.randrange(-35, 50), index))
+        # for i in self.cells:
+        #     print('; '.join(map(str, i)))
+        self.create_ladders()
+        self.create_snakes()
+
+    def create_ladders(self):
+        k = 0
+        while k < 2:
+            for i in range(random.randrange(3, 5)):
+                a_row = random.randint(0, self.rows - 1)
+                a_col = random.randint(0, self.cols - 1)
+                b_row = random.randint(0, a_row)
+                b_col = random.randint(0, self.cols - 1)
+                if a_row != b_row and not self.cells[a_row][a_col].connections and not self.cells[b_row][
+                    b_col].connections:  # so there is no ladders in the same row
+                    self.cells[a_row][a_col].add_connection(self.cells[b_row][b_col])
+                    self.cells[b_row][b_col].add_connection(None)
+                    k += 1
+
+    # # it will connect two cells by a gold line as a shortcut
+
+    def create_snakes(self):
+        t = 0
+        while t < 2:
+            for i in range(random.randrange(3, 5)):
+                a_row = random.randint(0, self.rows - 1)
+                a_col = random.randint(0, self.cols - 1)
+                b_row = random.randint(a_row, self.rows - 1)
+                b_col = random.randint(0, self.cols - 1)
+                if a_row != b_row and not self.cells[a_row][a_col].connections and not self.cells[b_row][
+                    b_col].connections:  # so there is no snakes in the same row
+                    self.cells[a_row][a_col].add_connection(self.cells[b_row][b_col])
+                    self.cells[b_row][b_col].add_connection(None)
+                    t += 1
+
+    # function to draw the board with a size 100 for each cell and the order of cells on the board
+    def draw_board(self):
+        self.surface.fill((200, 200, 200))
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if (row + col) % 2 == 0:
+                    color = (139, 189, 120)
+                else:
+                    color = (200, 200, 200)
+                rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                pygame.draw.rect(self.surface, color, rect)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                if self.cells[row][col].connections:
+                    if self.cells[row][col].connections[0] is not None:
+                        if self.cells[row][col].index < self.cells[row][col].connections[0].index:
+                            line_color = (102, 61, 14)
+                        else:
+                            line_color = (26, 107, 39)
+                        b_row = self.cells[row][col].connections[0].row
+                        b_col = self.cells[row][col].connections[0].col
+                        x1, y1 = self.cells[row][col].col * CELL_SIZE + CELL_SIZE / 2, self.cells[row][
+                            col].row * CELL_SIZE + CELL_SIZE / 2
+                        x2, y2 = self.cells[b_row][b_col].col * CELL_SIZE + CELL_SIZE / 2, self.cells[b_row][
+                            b_col].row * CELL_SIZE + CELL_SIZE / 2
+                        pygame.draw.line(self.surface, line_color, (x1, y1), (x2, y2), 15)
+        for row in range(0, self.rows):
+            for col in range(self.cols):
+                rect = pygame.Rect(col * CELL_SIZE, row * CELL_SIZE, CELL_SIZE, CELL_SIZE)
+                x_font = pygame.font.SysFont("Arial", 25)
+                y_font = pygame.font.SysFont("Comic Sans MS", 20)
+                text_index = y_font.render(str(self.cells[row][col].index), True, (0, 0, 0))
+                text_surface = x_font.render(str(self.cells[row][col].val), True, (255, 255, 255))
+                text_rect = text_surface.get_rect(center=rect.center)
+                index_rect = list(text_index.get_rect(bottomright=rect.bottomright))
+                self.surface.blit(text_surface, text_rect)
+                self.surface.blit(text_index, (index_rect[0], index_rect[1]))
 
 
 class GameExit:
@@ -451,6 +618,39 @@ class GameExit:
     def draw(self):
         self.surface.fill('white')
         small_page_txt = BigFont.render("Are you sure you want to exit the game?", True, "Black", None)
+        r = small_page_txt.get_rect()
+        self.surface.blit(small_page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 4))
+        for button in self.buttons:  # This draws each button on the screen
+            button.draw()
+
+    def check(self, user_event):  # Execute every user request
+        for button in self.buttons:
+            button.check(user_event)
+
+
+class GameEnd:
+    def __init__(self):
+        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
+        # List of all buttons which will be in the menu
+        # Each button initialized with its characteristics
+        self.buttons = [
+            ExitButton(self.surface, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 2 + 10,
+                       WINDOW_HEIGHT / 2,
+                       (102, 17, 17),
+                       (227, 190, 148), 'Return to the menu'),
+            StartButton(self.surface, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 4,
+                         WINDOW_HEIGHT / 2,
+                         (26, 107, 39),
+                         (227, 190, 148), 'Start a new game'),
+        ]
+
+    # This function draws everything, which will be on the screen
+    def draw(self):
+        self.surface.fill('white')
+        page_txt = TitleFont.render("The game is over", True, "Black", None)
+        r = page_txt.get_rect()
+        self.surface.blit(page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 15))
+        small_page_txt = BigFont.render(f"The winner is {game.players_order.peek()} with score {game.player_score[game.players_order.peek()]} points", True, "Black", None)
         r = small_page_txt.get_rect()
         self.surface.blit(small_page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 4))
         for button in self.buttons:  # This draws each button on the screen
@@ -746,6 +946,7 @@ choice = Choice()
 names = Names()
 game = Game()
 gexit = GameExit()
+endgame = GameEnd()
 current_screen = menu
 while running:  # Window cycle
     for event in pygame.event.get():  # Event check
