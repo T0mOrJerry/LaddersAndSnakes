@@ -33,9 +33,9 @@ BodyFont = pygame.font.SysFont("Arial", 25)
 ######################## Omar
 # Storing player's data
 players = {
-    "Omar": [3, 40],
-    "Alex": [10, 59],
-    "Wilson": [2, 1]
+    "Omar": [3, 20],
+    "Alex": [10, 80],
+    "Wilson": [2, 0]
 }
 
 ######################## Alex
