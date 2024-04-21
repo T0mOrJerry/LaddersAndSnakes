@@ -13,39 +13,91 @@ WINDOW_HEIGHT = 720
 keys_codes = {48: '0', 49: '1', 50: '2', 51: '3', 52: '4', 53: '5', 54: '6', 55: '7', 56: '8', 57: '9', 97: 'a',
               98: 'b', 99: 'c', 100: 'd', 101: 'e', 102: 'f', 103: 'g', 104: 'h', 105: 'i', 106: 'j', 107: 'k',
               108: 'l', 109: 'm', 110: 'n', 111: 'o', 112: 'p', 113: 'q', 114: 'r', 115: 's', 116: 't', 117: 'u',
-              118: 'v', 119: 'w', 120: 'x', 121: 'y', 122: 'z'}
+              118: 'v', 119: 'w', 120: 'x', 121: 'y', 122: 'z'}  # Dictionary to encode users keyboard input
 colors = [[(237, 152, 152), (222, 35, 35)], [(189, 152, 237), (116, 35, 222)], [(152, 170, 237), (35, 76, 222)],
           [(152, 237, 237), (35, 222, 222)], [(152, 237, 196), (35, 222, 132)],
           [(169, 237, 152), (73, 222, 35)], [(220, 237, 152), (185, 222, 35)],
           [(237, 229, 152), (222, 203, 35)], [(237, 203, 152), (222, 147, 35)],
-          [(237, 187, 152), (222, 113, 35)], [(237, 162, 152), (222, 57, 35)]]
+          [(237, 187, 152), (222, 113, 35)], [(237, 162, 152), (
+    222, 57, 35)]]  # Colors available for players - each contains value for circle and a softer one for score board
+# Game board size settings constants
 CELL_SIZE = 120
 ROWS = 5
 COLS = 8
+# Fonts
 BigFont = pygame.font.SysFont("Arial", 60)
 NormalFont = pygame.font.SysFont("Arial", 32)
 TitleFont = pygame.font.SysFont("Arial", 100)
 BodyFont = pygame.font.SysFont("Arial", 25)
 
-# Omar
-# Storing player data
+######################## Omar
+# Storing player's data
 players = {
-    "Omar": [52, 820],
-    "Alex": [63, 760],
-    "Wilson": [54, 700]
-}  ############################################################# Sorting algorithm for players' score
+    "Omar": [3, 40],
+    "Alex": [10, 59],
+    "Wilson": [2, 1]
+}
 
-
-# Alex
+######################## Alex
 # Creating different surfaces for different purpose
 # One general and one for each window
 main_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 menu_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 guide_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 leader_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
-choice_window = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+choice_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+names_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+game_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+game_exit_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
+game_end_screen = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
 
 
+# Merge sort algorithm for players dictionary block
+def merge(left, right):
+    i = j = 0
+    merged = []
+    while i < len(left) and j < len(right):
+        if left[i][2] > right[j][2]:
+            merged.append(left[i])
+            i += 1
+        else:
+            merged.append(right[j])
+            j += 1
+    merged += left[i:]
+    merged += right[j:]
+    return merged
+
+
+def merge_sort(arr):
+    if len(arr) <= 1:
+        return arr
+    mid = len(arr) // 2
+    left = arr[:mid]
+    right = arr[mid:]
+    left_sorted = merge_sort(left)
+    right_sorted = merge_sort(right)
+    return merge(left_sorted, right_sorted)
+
+
+def dict_list(di):
+    li = []
+    for i in di:
+        li.append((i, di[i][0], di[i][1]))
+    return li
+
+
+def list_dict(li):
+    di = {}
+    for i in li:
+        di[i[0]] = [i[1], i[2]]
+    return di
+
+
+def dict_merge_sort(di):
+    return list_dict(merge_sort(dict_list(di)))
+
+
+# Queue to manage players' order during the game
 class Queue:
     def __init__(self):
         self.items = []
@@ -69,24 +121,25 @@ class Queue:
     def is_empty(self):
         return len(self.items) == 0
 
-    def __str__(self):
+    def __str__(self):  # This function was created for debugging to correctly display the queue
         return ', '.join(list(map(str, self.items)))
 
     def size(self):
         return len(self.items)
 
-    def __iter__(self):
+    def __iter__(self):  # Iterator for the Queue to run across the Queue
         self.ln = self.size()
         return self
 
-    def __next__(self):
+    def __next__(self):  # Part of iterator
         if self.ln <= 0:
             raise StopIteration
         self.ln -= 1
         return self.items[self.ln]
 
 
-# Omar , class cell
+######################## Omar
+# class cell
 class Cell:
     def __init__(self, row, col, val, index):
         self.row = row
@@ -103,13 +156,17 @@ class Cell:
         return f"{self.row}, {self.col}, {self.index}, {self.val}"
 
 
+######################## Alex
+#########################################################################################
+##################################   WINDOWS CLASSES BLOCK   ##########################################
 # Each window is described as a class, which draws everything, that must be drawn
 # and helps to connect user and every interactive piece of the window
-#########################################################################################
-#########################################################################################
+
+# Class for the menu
 class Menu:
     def __init__(self):
         self.surface = menu_screen  # everything in menu class will be in the menu_screen surface
+
         # List of all buttons which will be in the menu
         # Each button initialized with its characteristics
         self.buttons = [
@@ -142,10 +199,11 @@ class Menu:
             button.check(user_event)
 
 
+# Class for the window where user can choose amount of players
 class Choice:
     def __init__(self):
-        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
-        # List of all buttons which will be in the menu
+        self.surface = choice_screen  # everything in choice class will be in the choice_screen surface
+        # List of all buttons which will be in the screen
         # Each button initialized with its characteristics
         self.player_number = 1
         self.buttons = [
@@ -176,6 +234,8 @@ class Choice:
         small_page_txt = BigFont.render("Choose amount of players", True, "Black", None)
         r = small_page_txt.get_rect()
         self.surface.blit(small_page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 4))
+
+        # Display the current chosen amount of players
         pygame.draw.rect(self.surface, (0, 0, 0),
                          (WINDOW_WIDTH / 7 * 3, WINDOW_HEIGHT / 7 * 3, WINDOW_WIDTH / 7, WINDOW_HEIGHT / 7 * 2),
                          width=5)
@@ -193,8 +253,8 @@ class Choice:
 
 class Names:
     def __init__(self):
-        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
-        # List of all buttons which will be in the menu
+        self.surface = names_screen  # everything in names class will be in the names_screen surface
+        # List of all buttons which will be in the screen
         # Each button initialized with its characteristics
         self.buttons = [
             ExitButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 44 * 39,
@@ -206,6 +266,8 @@ class Names:
                               (26, 107, 39),
                               (227, 190, 148), 'Submit'),
         ]
+        # List of all input fields which will be in the menu
+        # Each input field initialized with its characteristics
         self.fields = []
         for i in range(choice.player_number):
             self.fields.append(EnterField(self.surface, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 4,
@@ -221,13 +283,13 @@ class Names:
         small_page_txt = BigFont.render("Enter name(s) of player(s)", True, "Black", None)
         r = small_page_txt.get_rect()
         self.surface.blit(small_page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 4))
-        if self.same_name_error:
+        if self.same_name_error:  # We need to check weather all names are different
             warning_txt = NormalFont.render("All names must be different", True, "Red", None)
             r = warning_txt.get_rect()
             self.surface.blit(warning_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 3 + 5))
         for button in self.buttons:  # This draws each button on the screen
             button.draw()
-        for field in self.fields:
+        for field in self.fields:  # This draws each input field on the screen
             field.draw()
 
     def check(self, user_event):  # Execute every user request
@@ -236,20 +298,18 @@ class Names:
         for field in self.fields:
             field.check(user_event)
 
-    def inp(self, user_event):  # Execute every user request
+    def inp(self, user_event):  # Execute every user request from the keyboard
         for field in self.fields:
             field.inp(user_event)
 
 
+# This function would've worked if we had been able to make our game as .exe file or as zip archive
 class Guide:
     def __init__(self):
-        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
-        # List of all buttons which will be in the menu
+        self.surface = guide_screen  # everything in guide class will be in the guide_screen surface
+        # List of all buttons which will be in the quide
         # Each button initialized with its characteristics
         self.buttons = [
-            StartButton(self.surface, 0, WINDOW_HEIGHT / 7, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 7 * 4,
-                        (0, 61, 14),
-                        (227, 190, 148), 'Start'),
             ExitButton(self.surface, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 4, WINDOW_WIDTH / 2,
                        WINDOW_HEIGHT / 7 * 5,
                        (102, 17, 17),
@@ -270,12 +330,10 @@ class Guide:
             button.check(user_event)
 
 
-# Omar
+######################## Omar
 class Leaderboard:
     def __init__(self):
-        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
-        # List of all buttons which will be in the menu
-        # Each button initialized with its characteristics
+        self.surface = leader_screen
         self.buttons = [
             ExitButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 44 * 39,
                        WINDOW_HEIGHT / 40 * 35,
@@ -324,12 +382,11 @@ class Leaderboard:
             button.check(user_event)
 
 
-# Alex
+######################## Alex
+# The screen for game itself
 class Game:
     def __init__(self):
-        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
-        # List of all buttons which will be in the menu
-        # Each button initialized with its characteristics
+        self.surface = game_screen
         self.buttons = [
             ExitGameButton(self.surface, WINDOW_WIDTH / 11, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 44 * 39,
                            WINDOW_HEIGHT / 40 * 35,
@@ -338,8 +395,9 @@ class Game:
             DiceButton(self.surface, WINDOW_WIDTH / 5, WINDOW_HEIGHT / 13, WINDOW_WIDTH / 5 * 4,
                        WINDOW_HEIGHT / 3 * 2 + 3,
                        (26, 107, 39),
-                       (227, 190, 148), 'Roll the dice'),
+                       (227, 190, 148), 'Roll the die'),
         ]
+        # Stating all essential variables for the game
         self.player_number = None
         self.players_names = []
         self.player_score = {}
@@ -351,39 +409,44 @@ class Game:
         self.dice_pos_x = None
         self.dice_pos_y = None
         self.turns = 0
-        self.game_board = Board()
+        self.game_board = Board()  # Initialize and create game board
         self.game_board.cells[4][0].val = 0
         self.players_positions = {}
+        self.finished = False
 
+    # Function which will do all necessary actions, when someone reach the end of the board
     def end_game(self):
-        global current_screen
+        global current_screen, players
+        self.finished = True
         for name in self.player_score:
             if name not in players:
                 players[name] = [self.turns // len(self.players_names) + 1, self.player_score[name]]
             else:
                 players[name][0] += self.turns // len(self.players_names) + 1
                 players[name][1] += self.player_score[name]
-        print(players)
+        players[self.players_order.peek()][1] += 50
         current_screen = endgame
 
+    # Function to draw and update current score information in the top right corner
     def draw_score(self):
-            start_position = (WINDOW_WIDTH / 5 * 4, 0)
-            k = 0
-            for player in self.players_order:
-                score = self.player_score[player]
-                pygame.draw.rect(self.surface, self.players_colors[player][0],
-                                 (start_position[0], start_position[1] + k, WINDOW_WIDTH / 5, WINDOW_HEIGHT / 17))
-                btn_txt = BodyFont.render(f'{player}:      {score}', True, "Black", None)
-                r = btn_txt.get_rect()
-                self.surface.blit(btn_txt,
-                                  (start_position[0] + 10, start_position[1] + k + (WINDOW_HEIGHT / 17 - r.height) / 2))
-                k += WINDOW_HEIGHT // 17
-            turn_txt = NormalFont.render(f"{self.players_order.peek()}'s turn", True, "Black", None)
-            cr = turn_txt.get_rect()
-            self.surface.blit(turn_txt,
-                              (WINDOW_WIDTH / 5 * 4 + (WINDOW_WIDTH / 5 - cr.width) / 2,
-                               start_position[1] + k + (WINDOW_HEIGHT / 17 - cr.height) / 2))
+        start_position = (WINDOW_WIDTH / 5 * 4, 0)
+        k = 0
+        for player in self.players_order:
+            score = self.player_score[player]
+            pygame.draw.rect(self.surface, self.players_colors[player][0],
+                             (start_position[0], start_position[1] + k, WINDOW_WIDTH / 5, WINDOW_HEIGHT / 17))
+            btn_txt = BodyFont.render(f'{player}:      {score}', True, "Black", None)
+            r = btn_txt.get_rect()
+            self.surface.blit(btn_txt,
+                              (start_position[0] + 10, start_position[1] + k + (WINDOW_HEIGHT / 17 - r.height) / 2))
+            k += WINDOW_HEIGHT // 17
+        turn_txt = NormalFont.render(f"{self.players_order.peek()}'s turn", True, "Black", None)
+        cr = turn_txt.get_rect()
+        self.surface.blit(turn_txt,
+                          (WINDOW_WIDTH / 5 * 4 + (WINDOW_WIDTH / 5 - cr.width) / 2,
+                           start_position[1] + k + (WINDOW_HEIGHT / 17 - cr.height) / 2))
 
+    # Function creates space for dice roll
     def draw_dice_screen(self):
         pygame.draw.rect(self.surface, (0, 0, 0),
                          (WINDOW_WIDTH / 5 * 4, WINDOW_HEIGHT / 17 * 5, WINDOW_WIDTH / 5,
@@ -392,6 +455,7 @@ class Game:
         if self.dice_surface is not None:
             self.surface.blit(self.dice_surface, (self.dice_pos_x, self.dice_pos_y))
 
+    # Function draw certain picture of dice depend on its result
     def draw_dice(self, value):
         self.dice_surface = pygame.Surface((self.dice_size, self.dice_size))
         self.dice_surface.fill((255, 255, 255))
@@ -400,8 +464,8 @@ class Game:
                           self.dice_size), width=4)
         if value in [1, 3, 5]:
             pygame.draw.circle(self.dice_surface, (0, 0, 0),
-                             (self.dice_size / 2,
-                              self.dice_size / 2), 6)
+                               (self.dice_size / 2,
+                                self.dice_size / 2), 6)
         if value in [2, 5, 4, 6]:
             pygame.draw.circle(self.dice_surface, (0, 0, 0),
                                (self.dice_size / 15 * 4,
@@ -427,14 +491,17 @@ class Game:
         switch_screen(current_screen)
         pygame.display.flip()
 
+    # Function create dice animation, when pressed dice roll button
     def dice_animation(self):
-        for i in range(random.randrange(10, 20)):
+        for i in range(random.randrange(10, 20)):  # The amount of frames for animation is randomly picked
             self.dice_pos_x = WINDOW_WIDTH / 5 * 4 + 10 + random.randrange(0, WINDOW_WIDTH // 5 - 20 - self.dice_size)
-            self.dice_pos_y = WINDOW_HEIGHT / 17 * 5 + 10 + random.randrange(0, WINDOW_HEIGHT // 3 * 2 - WINDOW_HEIGHT // 7 * 2 - 20 - self.dice_size)
+            self.dice_pos_y = WINDOW_HEIGHT / 17 * 5 + 10 + random.randrange(0,
+                                                                             WINDOW_HEIGHT // 3 * 2 - WINDOW_HEIGHT // 7 * 2 - 20 - self.dice_size)
             self.draw_dice(random.randrange(1, 7))
-            pygame.time.wait(150)
+            pygame.time.wait(150)  # The function freezes the program for a bit so the animation can be noticed
         self.draw_dice(self.dice_value)
 
+    # Function draws circles of different colors which depict players and their positions in the board
     def draw_players(self):
         k_x = CELL_SIZE / 4
         k_y = CELL_SIZE / 4
@@ -451,11 +518,12 @@ class Game:
                 k_x %= CELL_SIZE
             c += 1
 
+    # Function move the player's circles when player roll a die
     def move(self):
         player = self.players_order.peek()
         h_x = self.players_positions[player][1]
         h_y = self.players_positions[player][0]
-        if h_y == 0 and h_x + self.dice_value >= COLS:
+        if h_y == 0 and h_x + self.dice_value >= COLS:  # When program cannot move player anywhere in the board the game stops
             self.end_game()
         else:
             if h_x + self.dice_value < COLS and h_y % 2 == 0:
@@ -468,12 +536,14 @@ class Game:
             elif h_y % 2 == 1:
                 self.players_positions[player][0] -= 1
                 self.players_positions[player][1] = self.dice_value - h_x - 1
-            con = self.game_board.cells[self.players_positions[player][0]][self.players_positions[player][1]].connections
+            con = self.game_board.cells[self.players_positions[player][0]][
+                self.players_positions[player][1]].connections
             if con:
                 if con[0] is not None:
                     self.players_positions[player][0] = con[0].row
                     self.players_positions[player][1] = con[0].col
-            self.player_score[player] += self.game_board.cells[self.players_positions[player][0]][self.players_positions[player][1]].val
+            self.player_score[player] += self.game_board.cells[self.players_positions[player][0]][
+                self.players_positions[player][1]].val  # Updates player's score after their turn
 
     # This function draws everything, which will be on the screen
     def draw(self):
@@ -486,18 +556,20 @@ class Game:
         self.surface.blit(self.game_board.surface, (20, 40))
         self.draw_players()
 
+    # This function is called, when player hits button "Roll a die"
     def roll_dice(self):
-        # self.dice_value = random.choice([1])
         self.dice_value = random.choice([1, 2, 3, 4, 5, 6])
         self.dice_animation()
-        self.turns += 1  ############ INCORRECT!!!!
+        self.turns += 1
         self.move()
-        self.players_order.enqueue(self.players_order.dequeue())
+        if not self.finished:  # Stops players' rotation when the game is over
+            self.players_order.enqueue(self.players_order.dequeue())
 
     def check(self, user_event):  # Execute every user request
         for button in self.buttons:
             button.check(user_event)
 
+    # Function states important values to start the game
     def start_the_game(self):
         for name in self.players_names:
             self.player_score[name] = 0
@@ -509,8 +581,9 @@ class Game:
             self.players_positions[player] = [4, 0]
 
 
+######################## Omar
 class Board:
-    # function to create a board object with a cells and a random value between -50,49 inside each cell
+    # function to create a board object with a cells and a random value between -35,49 inside each cell
     def __init__(self):
         self.rows = ROWS
         self.cols = COLS
@@ -522,13 +595,11 @@ class Board:
                     index = (self.rows - row) * self.cols - self.cols + 1 + col
                 else:
                     index = (self.rows - row) * self.cols - col
-                # print(row, col, val)
                 self.cells[row].append(Cell(row, col, random.randrange(-35, 50), index))
-        # for i in self.cells:
-        #     print('; '.join(map(str, i)))
         self.create_ladders()
         self.create_snakes()
 
+    # it will connect two cells by a brown line as a shortcut
     def create_ladders(self):
         k = 0
         while k < 2:
@@ -543,8 +614,7 @@ class Board:
                     self.cells[b_row][b_col].add_connection(None)
                     k += 1
 
-    # # it will connect two cells by a gold line as a shortcut
-
+    # it will connect two cells by a green line as a shortcut
     def create_snakes(self):
         t = 0
         while t < 2:
@@ -598,11 +668,11 @@ class Board:
                 self.surface.blit(text_index, (index_rect[0], index_rect[1]))
 
 
+######################## Alex
+# Class used when user try to exit during the game
 class GameExit:
     def __init__(self):
-        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
-        # List of all buttons which will be in the menu
-        # Each button initialized with its characteristics
+        self.surface = game_exit_screen
         self.buttons = [
             ExitButton(self.surface, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 2 + 10,
                        WINDOW_HEIGHT / 2,
@@ -628,20 +698,19 @@ class GameExit:
             button.check(user_event)
 
 
+# Class is used, when the game is over
 class GameEnd:
     def __init__(self):
-        self.surface = guide_screen  # everything in menu class will be in the menu_screen surface
-        # List of all buttons which will be in the menu
-        # Each button initialized with its characteristics
+        self.surface = game_end_screen
         self.buttons = [
             ExitButton(self.surface, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 2 + 10,
                        WINDOW_HEIGHT / 2,
                        (102, 17, 17),
                        (227, 190, 148), 'Return to the menu'),
             StartButton(self.surface, WINDOW_WIDTH / 4, WINDOW_HEIGHT / 10, WINDOW_WIDTH / 4,
-                         WINDOW_HEIGHT / 2,
-                         (26, 107, 39),
-                         (227, 190, 148), 'Start a new game'),
+                        WINDOW_HEIGHT / 2,
+                        (26, 107, 39),
+                        (227, 190, 148), 'Start a new game'),
         ]
 
     # This function draws everything, which will be on the screen
@@ -650,7 +719,9 @@ class GameEnd:
         page_txt = TitleFont.render("The game is over", True, "Black", None)
         r = page_txt.get_rect()
         self.surface.blit(page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 15))
-        small_page_txt = BigFont.render(f"The winner is {game.players_order.peek()} with score {game.player_score[game.players_order.peek()]} points", True, "Black", None)
+        small_page_txt = BigFont.render(
+            f"The winner is {game.players_order.peek()} with score {game.player_score[game.players_order.peek()]} points",
+            True, "Black", None)
         r = small_page_txt.get_rect()
         self.surface.blit(small_page_txt, ((WINDOW_WIDTH - r.width) / 2, WINDOW_HEIGHT / 4))
         for button in self.buttons:  # This draws each button on the screen
@@ -662,9 +733,10 @@ class GameEnd:
 
 
 #########################################################################################
-#########################################################################################
+###############################    INTERACTIVE PARTS    #########################################
 
 
+# Class which imitates input box
 class EnterField:
     def __init__(self, surf, width: float, height: float, pos_x: float, pos_y: float, text=''):
         self.surface = surf
@@ -675,9 +747,8 @@ class EnterField:
         self.text = text
         self.activated = False
 
-    # This function draw the button with the stated position
     def draw(self):
-        if not self.activated:  # Drawing the button's shadow if the button isn't pressed
+        if not self.activated:
             pygame.draw.rect(self.surface, "gray", (self.pos_x, self.pos_y, self.width, self.height))
         else:
             pygame.draw.rect(self.surface, "white", (self.pos_x, self.pos_y, self.width, self.height))
@@ -686,17 +757,16 @@ class EnterField:
         r = btn_txt.get_rect()
         self.surface.blit(btn_txt, (self.pos_x + 5, self.pos_y + (self.height - r.height) / 2))
 
-    # The function activates, when user click the mouse and check weather mouse was in the button at that moment
+    # Function activates or disactivates field when it's pressed by user
     def check(self, *args):
         p = args[0].pos
         if (self.pos_x <= p[0] <= self.pos_x + self.width) and (self.pos_y <= p[1] <= self.pos_y + self.height):
-            # The function distinguish when user press the button and when they release the button
-            # The function creates the animation (changes the position) of the button
             if args[0].type == 1025:
                 self.activated = not self.activated
         elif self.activated and args[0].type == 1025:
             self.activated = not self.activated
 
+    # Add characters, when get any signals from the keyboard
     def inp(self, *args):
         if self.activated:
             if 97 <= args[0].key <= 122 or 48 <= args[0].key <= 57:
@@ -706,11 +776,6 @@ class EnterField:
                     self.text += keys_codes[args[0].key]
             elif args[0].key == 8:
                 self.text = self.text[:-1]
-
-    # This function is empty for the template
-    # It is personalized for different buttons and reliable for button's jobd
-    def do(self):
-        pass
 
 
 # Parental class for all buttons
@@ -805,7 +870,8 @@ class StartButton(Button):  # Class for the button, which starts the game
 
 class BoardButton(Button):  # Class for the button which opens window of leaderboard
     def do(self):
-        global current_screen
+        global current_screen, players
+        players = dict_merge_sort(players)
         current_screen = board
 
 
@@ -939,6 +1005,7 @@ def switch_screen(screen):
     main_screen.blit(screen.surface, (0, 0))
 
 
+# Creates class implementation
 menu = Menu()
 guide = Guide()
 board = Leaderboard()
@@ -947,7 +1014,7 @@ names = Names()
 game = Game()
 gexit = GameExit()
 endgame = GameEnd()
-current_screen = menu
+current_screen = menu  # States starting window
 while running:  # Window cycle
     for event in pygame.event.get():  # Event check
         if event.type == pygame.QUIT:
