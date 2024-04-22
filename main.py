@@ -39,9 +39,9 @@ with open(log_file_name, 'w') as file:
 ######################## Omar
 # Storing player's data
 players = {
-    "Omar": [52, 430],
-    "Alex": [63, 320],
-    "Wilson": [54, 390]
+    "Omar": [3, 20],
+    "Alex": [10, 80],
+    "Wilson": [2, 0]
 }
 
 ######################## Alex
