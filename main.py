@@ -922,7 +922,7 @@ class EnterField:
     """
     Class, which describes field to input text for the keyboard
         Activates/disactivates when clicked by user
-        Allows to enter maximum 27 common characters - latin letters and numbers
+        Allows to enter maximum 10 common characters - latin letters and numbers
 
         Stores information about the field:
             --Surface - to draw on
@@ -970,7 +970,7 @@ class EnterField:
             if 97 <= args[0].key <= 122 or 48 <= args[0].key <= 57:
                 if not self.text:
                     self.text += keys_codes[args[0].key].upper()
-                elif len(self.text) <= 27:
+                elif len(self.text) <= 10:
                     self.text += keys_codes[args[0].key]
             elif args[0].key == 8:  # Text can be deleted with 'Delete' button in the keyboard
                 self.text = self.text[:-1]
